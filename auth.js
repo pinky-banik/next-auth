@@ -1,9 +1,11 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { userModel } from "./models/user-model";
-import mongoClientPromise from "./db/mongoClientPromise";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
+
+import { userModel } from "./models/user-model";
+import bcrypt from "bcryptjs";
+import mongoClientPromise from "./db/mongoClientPromise";
 
 export const {
     handlers: { GET, POST },
@@ -29,7 +31,10 @@ export const {
                     const user = await userModel.findOne({email: credentials.email});
                     console.log({user})
                     if (user) {
-                        const isMatch = user.email === credentials.email;
+                        const isMatch = await bcrypt.compare(
+                            credentials.password,
+                            user.password
+                        );
                         if(isMatch) {
                             return user;
                         } else {
