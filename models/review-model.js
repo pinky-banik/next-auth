@@ -1,6 +1,8 @@
-import mongoose, {Schema} from "mongoose";
 
-const ratingSchma = new Schema({
+import mongoose, {Schema} from "mongoose";
+import { ObjectId } from "mongodb";
+
+const reviewSchema = new Schema({
   hotelId: {
     required: true,
     type: ObjectId
@@ -9,11 +11,11 @@ const ratingSchma = new Schema({
     required: true,
     type: ObjectId
   },
-  rating: {
+  review: {
     required: true,
     type: Number
   },
 });
 
 
-export const ratingModel = mongoose.models.ratings ?? mongoose.model("ratings", ratingSchma);
+export const reviewModel = mongoose.models.reviews ?? mongoose.model("reviews", reviewSchema);
