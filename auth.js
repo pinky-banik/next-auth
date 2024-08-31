@@ -1,40 +1,45 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { userModel } from "./models/user-model";
 import mongoClientPromise from "./db/mongoClientPromise";
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
 
-const handler = NextAuth({
-    adapter: MongoDBAdapter(mongoClientPromise),
+export const {
+    handlers: { GET, POST },
+    auth,
+    signIn,
+    signOut,
+} = NextAuth({
+    adapter: MongoDBAdapter(mongoClientPromise, {databaseName: process.env.ENVIRONMENT }),
+    session: {
+        strategy: 'jwt',
+    },
     providers: [
         CredentialsProvider({
-            credentials:{
-                credentials:{
-                    email:{},
-                    password:{}
-                },
-                async authorize(credentials) {
-                    if (credentials == null) return nulll
-                    try {
-                        const user = await userModel.findOne({
-                            email: credentials.email
-                        })
+            credentials: {
+                email: {},
+                password: {},
+            },
 
+            async authorize(credentials) {
+                if (credentials == null) return null;
 
-                        if (user) {
-                            const isMatch = user.email === credentials.email;
-                            if (isMatch) {
-                                return user;
-                            } else {
-                                throw new Error('Email of password mismatch')
-                            }
+                try {
+                    const user = await userModel.findOne({email: credentials.email});
+                    console.log({user})
+                    if (user) {
+                        const isMatch = user.email === credentials.email;
+                        if(isMatch) {
+                            return user;
                         } else {
-                            throw new Error('User not found')
+                            throw new Error('Email or password mismatch');
                         }
-                    } catch (error) {
-                        throw new Error(error)
+                    } else {
+                        throw new Error('User not found');
                     }
+                } catch(error) {
+                    throw new Error(error);
                 }
             }
         }),
@@ -44,4 +49,3 @@ const handler = NextAuth({
           }),
     ]
 })
-export { handler as GET, handler as POST };
